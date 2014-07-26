@@ -34,6 +34,7 @@ prettyRedis = prettyRedis(port, host, auth);
 repl = repl();
 
 prettyRedis.on('error', function (err) {
+  prettyRedis.lock = false;
   console.log();
   console.log('   ' + chalk.magenta(err.message));
   console.log();
@@ -41,6 +42,7 @@ prettyRedis.on('error', function (err) {
 });
 
 prettyRedis.on('data', function (data, action) {
+  prettyRedis.lock = false;
   printKeys(data, action)
     || printSuccessMessage(data, action)
     || printJSON(data, action)
@@ -50,7 +52,13 @@ prettyRedis.on('data', function (data, action) {
   repl.prompt();
 });
 
-repl.on('line', prettyRedis.exec.bind(prettyRedis));
+repl.on('line', function (line) {
+  if (prettyRedis.lock) {
+    return;
+  }
+  prettyRedis.lock= true;
+  prettyRedis.exec(line);
+});
 
 function printKeys(data, action) {
   if (action.cmd !== 'keys') {
