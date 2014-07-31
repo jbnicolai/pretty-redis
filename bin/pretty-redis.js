@@ -31,6 +31,7 @@ function help() {
     console.log('  %s %s', '--help, -h\t', 'redis host name');
     console.log('  %s %s', '--port, -p\t', 'redis port number');
     console.log('  %s %s', '--auth, -a\t', 'redis auth key');
+    console.log('  %s %s', '--plugin\t', 'Node.js module name or file path');
     console.log();
     process.exit();
   }
@@ -47,7 +48,7 @@ function connect() {
 
 function initPrettyRedis() {
   prettyRedis
-    // .use(plugins.thirdparty(parsed.plugins))
+    .use(plugins.thirdparty(parsed.plugin))
     .use(plugins.keys())
     .use(plugins.jsonPrettify())
     .use(plugins.xmlPrettify())
