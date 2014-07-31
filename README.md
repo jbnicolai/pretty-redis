@@ -46,6 +46,17 @@ $ npm i -g pretty-redis
 * `highlight`
   * alias: `hicat`, `hl`
 
+## Plugins
+
+* `PrettyRedis.plugins.jsonPrettify`
+* `PrettyRedis.plugins.xmlPrettify`
+* `PrettyRedis.plugins.heighlight`
+* `PrettyRedis.plugins.array`
+* `PrettyRedis.plugins.object`
+* `PrettyRedis.plugins.keys`
+* `PrettyRedis.plugins.types`
+* `PrettyRedis.plugins.compose`
+
 ## License
 
 (The MIT License)
