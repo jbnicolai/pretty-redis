@@ -81,8 +81,8 @@ function exec(line) {
 function success(ctx) {
   console.log();
 
-  if (ctx.type !== 'plain-text') {
-    console.log('   (%s)', ctx.type);
+  if (ctx.type !== 'plain-text' && ctx.type !== 'keys') {
+    console.log(chalk.cyan('   (' + ctx.type + ')'));
     console.log();
   }
 
