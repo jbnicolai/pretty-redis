@@ -1,205 +1,97 @@
 #!/usr/bin/env node
 
 var chalk = require('chalk');
-var beautifyHTML = require('js-beautify').html;
 var pkg = require('../package');
 var prettyRedis = require('../lib/pretty-redis');
+var plugins = prettyRedis.plugins;
 var repl = require('../lib/repl');
 var parsed = require('../lib/opt');
 var stop = {};
 
-if (parsed.help) {
-  console.log();
-  console.log('  %s@%s', chalk.cyan(pkg.name), pkg.version);
-  console.log();
-  console.log('  %s %s -h %s -p %s'
-    , chalk.yellow('$')
-    , chalk.green('pretty-redis')
-    , chalk.cyan('127.0.0.1')
-    , chalk.cyan('6379'));
-  console.log();
-  console.log('  %s %s', '--help, -h\t', 'redis host name');
-  console.log('  %s %s', '--port, -p\t', 'redis port number');
-  console.log('  %s %s', '--auth, -a\t', 'redis auth key');
-  console.log();
-  process.exit();
+main();
+
+function main() {
+  help();
+  connect();
+  initPrettyRedis();
+  initRepl();
 }
 
-var host = parsed.host || '127.0.0.1';
-var port = parsed.port || 6379;
-var auth = parsed.auth;
+function help() {
+  if (parsed.help) {
+    console.log();
+    console.log('  %s@%s', chalk.cyan(pkg.name), pkg.version);
+    console.log();
+    console.log('  %s %s -h %s -p %s'
+      , chalk.yellow('$')
+      , chalk.green('pretty-redis')
+      , chalk.cyan('127.0.0.1')
+      , chalk.cyan('6379'));
+    console.log();
+    console.log('  %s %s', '--help, -h\t', 'redis host name');
+    console.log('  %s %s', '--port, -p\t', 'redis port number');
+    console.log('  %s %s', '--auth, -a\t', 'redis auth key');
+    console.log();
+    process.exit();
+  }
+}
 
-prettyRedis = prettyRedis(port, host, auth);
+function connect() {
+  var host = parsed.host || '127.0.0.1';
+  var port = parsed.port || 6379;
+  var auth = parsed.auth;
 
-repl = repl();
+  prettyRedis = prettyRedis(port, host);
+  auth && prettyRedis.auth(auth);
+}
 
-prettyRedis.on('error', function (err) {
-  prettyRedis.lock = false;
-  console.log();
-  console.log('   ' + chalk.magenta(err.message));
-  console.log();
-  repl.prompt();
-});
+function initPrettyRedis() {
+  prettyRedis
+    // .use(plugins.thirdparty(parsed.plugins))
+    .use(plugins.keys())
+    .use(plugins.jsonPrettify())
+    .use(plugins.xmlPrettify())
+    .use(plugins.heighlight())
+    .use(plugins.array())
+    .use(plugins.object())
+    .use(plugins.types());
+}
 
-prettyRedis.on('data', function (data, action) {
-  prettyRedis.lock = false;
-  printKeys(data, action)
-    || printSuccessMessage(data, action)
-    || printJSON(data, action)
-    || printHTML(data, action)
-    || printArrayDefault(data, action)
-    || printDataDefault(data, action);
-  repl.prompt();
-});
+function initRepl() {
+  repl = repl();
+  repl.on('line', exec);
+}
 
-repl.on('line', function (line) {
+function exec(line) {
   if (prettyRedis.lock) {
     return;
   }
-  prettyRedis.lock= true;
-  prettyRedis.exec(line);
-});
 
-function printKeys(data, action) {
-  if (action.cmd !== 'keys') {
-    return;
-  }
+  prettyRedis.lock = true;
 
-  if (!data.length) {
-    console.log();
-    console.log(chalk.magenta('   Sorry, no results found.'));
-    console.log();
-    return stop;
-  }
-
-  var tree = {};
-
-  var push = function (key) {
-    var tmp = key.split(':');
-    var last = tmp.pop();
-    var parent_ = tree;
-
-    tmp.forEach(function (key) {
-      if (!parent_.hasOwnProperty(key)) {
-        parent_[key] = {};
-      }
-      parent_ = parent_[key];
+  prettyRedis.exec(line)
+    .then(success)
+    .catch(error)
+    .then(function () {
+      prettyRedis.lock = false;
+      repl.prompt();
     });
-
-    parent_[last] = null;
-  };
-
-  data.forEach(push);
-
-  var log = function (indent, msg) {
-    while (indent--) {
-      msg = ' ' + msg;
-    }
-    console.log(msg);
-  }
-
-  var printTree = function (indent, prefix, tree) {
-    var keys = Object.keys(tree);
-    var counter = 0;
-
-    if (!keys.length) {
-      return;
-    }
-    
-    keys.forEach(function (key, index) {
-      if (tree[key]) {
-        log(indent, chalk.yellow(prefix + key));
-        printTree(indent + 2, prefix + key + ':', tree[key]);
-      } else {
-        log(indent, (counter++) + ') ' + chalk.cyan(prefix + key));
-      }
-    });
-  };
-
-  console.log();
-  printTree(3, '', tree);
-  console.log();
-
-  return stop;
 }
 
-function printJSON(data, action) {
-  if (typeof data !== 'string') {
-    return;
-  }
-
-  data = data.trim();
-
-  if (!/^[\[{]/.test(data)) {
-    return;
-  }
-
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    return;
-  }
-
-  data = JSON.stringify(data, null, 2);
-  data = data.replace(/^/gm, '   ');
-
-  console.log();
-  console.log(chalk.cyan('   (json)'));
-  console.log();
-  console.log(data);
+function success(ctx) {
   console.log();
 
-  return stop;
+  if (ctx.type !== 'plain-text') {
+    console.log('   (%s)', ctx.type);
+    console.log();
+  }
+
+  console.log(ctx.data.replace(/^/mg, '   '));
+  console.log();
 }
 
-function printHTML(data, action) {
-  if (!/^\s*\<.+?\>/.test(data)) {
-    return;
-  }
-
-  data = beautifyHTML(data, {
-    indent_size: 2
-  });
-
-  data = data.replace(/^/gm, '   ');
-
+function error(err) {
   console.log();
-  console.log(chalk.cyan('   (html)'));
-  console.log();
-  console.log(data);
-  console.log();
-
-  return stop;
-}
-
-function printSuccessMessage(data, action) {
-  if (!/^ok$/i.test(data)) {
-    return;
-  }
-
-  console.log();
-  console.log('   ' + chalk.green(data));
-  console.log();
-
-  return stop;
-}
-
-function printArrayDefault(data, action) {
-  if (!Array.isArray(data)) {
-    return;
-  }
-
-  data.forEach(function (val, index) {
-    var msg = '   '
-      + index + ') '
-      + chalk.cyan(val);
-
-    console.log(msg);
-  });
-}
-
-function printDataDefault(data, action) {
-  console.log();
-  console.log('   %s %s', chalk.cyan('(' + (typeof data) + ')'), data);
+  console.log('   %s', chalk.magenta(err.message));
   console.log();
 }
