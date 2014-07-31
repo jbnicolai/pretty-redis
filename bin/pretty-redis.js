@@ -94,4 +94,5 @@ function error(err) {
   console.log();
   console.log('   %s', chalk.magenta(err.message));
   console.log();
+  console.log(err.stack);
 }
