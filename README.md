@@ -12,7 +12,7 @@ $ npm i -g pretty-redis
 
 ## Example
 
-```bash
+```
  › set xml:test:1 '<?xml version="1.0"?><feed></feed>'
 
    OK
