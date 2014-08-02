@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
+var path = require('path');
 var chalk = require('chalk');
+var updater = require('npm-auto-updater');
 var pkg = require('../package');
 var prettyRedis = require('../lib/pretty-redis');
 var plugins = prettyRedis.plugins;
@@ -8,7 +10,8 @@ var repl = require('../lib/repl');
 var parsed = require('../lib/opt');
 var stop = {};
 
-main();
+updater(path.join(__dirname, '..'))
+  .then(main);
 
 function main() {
   help();

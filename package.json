@@ -1,6 +1,6 @@
 {
   "name": "pretty-redis",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "main": "lib/pretty-redis.js",
   "description": "A simple and beautiful cli client for redis",
   "bin": {
@@ -12,6 +12,7 @@
     "js-beautify": "^1.5.1",
     "native-or-bluebird": "^1.0.0",
     "nopt": "^3.0.1",
+    "npm-auto-updater": "0.0.0",
     "readline-trie-completer": "0.0.0",
     "redis": "^0.11.0",
     "str2argv": "~0.0.2"
