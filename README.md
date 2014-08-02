@@ -64,7 +64,7 @@ client.exec('keys *')
 
 ### Use plugins
 
-`pretty-redis` provides several [plugins](./lib/plugins/index.js). You can use theme like Express middleware:
+`pretty-redis` provides several [plugins](./lib/plugins/index.js).
 
 ```javascript
 var plugins = PrettyRedis.plugins;
