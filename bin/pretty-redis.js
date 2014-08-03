@@ -8,7 +8,7 @@ var prettyRedis = require('../lib/pretty-redis');
 var plugins = prettyRedis.plugins;
 var repl = require('../lib/repl');
 var parsed = require('../lib/opt');
-var stop = {};
+var stop = {}, rl;
 
 updater(path.join(__dirname, '..'))
   .then(main);
@@ -16,8 +16,9 @@ updater(path.join(__dirname, '..'))
 function main() {
   help();
   connect();
-  initPrettyRedis();
   initRepl();
+  initPrettyRedis();
+  rl.prompt();
 }
 
 function help() {
@@ -51,6 +52,10 @@ function connect() {
 
 function initPrettyRedis() {
   prettyRedis
+    .use(plugins.repl({
+      open: initRepl,
+      close: closeRepl
+    }))
     .use(plugins.thirdparty(parsed.plugin))
     .use(plugins.keys())
     .use(plugins.jsonPrettify())
@@ -63,8 +68,12 @@ function initPrettyRedis() {
 }
 
 function initRepl() {
-  repl = repl();
-  repl.on('line', exec);
+  rl = repl();
+  rl.on('line', exec);
+}
+
+function closeRepl() {
+  rl.close();
 }
 
 function exec(line) {
@@ -79,11 +88,15 @@ function exec(line) {
     .catch(error)
     .then(function () {
       prettyRedis.lock = false;
-      repl.prompt();
+      rl.prompt();
     });
 }
 
 function success(ctx) {
+  if (!ctx.data) {
+    return;
+  }
+
   console.log();
 
   if (ctx.type !== 'plain-text' && ctx.type !== 'keys') {
