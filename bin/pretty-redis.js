@@ -58,7 +58,8 @@ function initPrettyRedis() {
     .use(plugins.heighlight())
     .use(plugins.array())
     .use(plugins.object())
-    .use(plugins.types());
+    .use(plugins.types())
+    .use(plugins.save());
 }
 
 function initRepl() {
