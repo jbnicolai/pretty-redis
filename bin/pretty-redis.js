@@ -6,7 +6,7 @@ var updater = require('npm-auto-updater');
 var pkg = require('../package');
 var prettyRedis = require('../lib/pretty-redis');
 var plugins = prettyRedis.plugins;
-var repl = require('../lib/repl');
+var readline = require('../lib/readline');
 var parsed = require('../lib/opt');
 var stop = {}, rl;
 
@@ -16,7 +16,7 @@ updater(path.join(__dirname, '..'))
 function main() {
   help();
   connect();
-  initRepl();
+  initReadline();
   initPrettyRedis();
   rl.prompt();
 }
@@ -53,8 +53,8 @@ function connect() {
 function initPrettyRedis() {
   prettyRedis
     .use(plugins.repl({
-      open: initRepl,
-      close: closeRepl
+      open: initReadline,
+      close: closeReadline
     }))
     .use(plugins.thirdparty(parsed.plugin))
     .use(plugins.keys())
@@ -67,12 +67,12 @@ function initPrettyRedis() {
     .use(plugins.save());
 }
 
-function initRepl() {
-  rl = repl();
+function initReadline() {
+  rl = readline();
   rl.on('line', exec);
 }
 
-function closeRepl() {
+function closeReadline() {
   rl.close();
 }
 

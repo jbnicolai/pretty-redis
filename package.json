@@ -1,6 +1,6 @@
 {
   "name": "pretty-redis",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "lib/pretty-redis.js",
   "description": "A simple and beautiful cli client for redis",
   "bin": {

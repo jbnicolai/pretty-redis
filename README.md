@@ -45,6 +45,18 @@ It's already better then `redis-cli` but not pretty enough. So use `highlight` (
 
 The list of supported options and filters is available in wiki.
 
+### REPL
+
+```bash
+ › keys * --repl
+ js › var fs = require('fs');
+ js › // `data` - redis result
+ js ›
+ js › data = data.map(/* do something */);
+ js ›
+ js › var content = JSON.stringify(data);
+ js › fs.writeFileSync('./data.json', content);
+```
 
 ## Node.js
 
