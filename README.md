@@ -76,7 +76,7 @@ client.exec('keys *')
 
 ### Use plugins
 
-`pretty-redis` provides several [plugins](./lib/plugins/index.js).
+[plugins](./lib/plugins/index.js).
 
 ```javascript
 var plugins = PrettyRedis.plugins;
@@ -90,7 +90,7 @@ client.use(plugins.jsonPrettify());
 
 ```javascript
 client.use(function (next) {
-  if (!this.hasFilter('your-filter')) {
+  if (!this.hasFilter('my-custom-filter')) {
     return next();
   }
   // do something here
