@@ -1,6 +1,8 @@
 pretty-redis
 ------------
 
+> deprecated
+
 `pretty-redis` is a cli client for redis, which is beautiful and very simple.
 
 ```bash
